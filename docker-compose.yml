@@ -1,0 +1,85 @@
+version: "2.2"
+
+services:
+  cube_api:
+    image: cubejs/cube
+    ports:
+      - 4000:4000
+    environment:
+      - CUBEJS_REDIS_URL=redis://redis:6379
+      - CUBEJS_API_SECRET=secret
+      - REDIS_HOST=redis
+      - CUBEJS_REFRESH_WORKER=false
+      - REDIS_HOST_PASSWORD=MDNcVb924a
+    volumes:
+      - .:/cube/conf
+    depends_on:
+      - cubestore_worker_1
+      - cubestore_worker_2
+      - cube_refresh_worker
+      - redis
+  cube_refresh_worker:
+    image: cubejs/cube
+    environment:
+      - CUBEJS_CUBESTORE_HOST=cubestore_router
+      - CUBEJS_REDIS_URL=redis://redis:6379
+      - CUBEJS_API_SECRET=secret
+      - REDIS_HOST=redis
+      - REDIS_HOST_PASSWORD=MDNcVb924a
+      - CUBEJS_REFRESH_WORKER=false
+      - CUBEJS_REDIS_PASSWORD=MDNcVb924a
+    volumes:
+      - .:/cube/conf
+  cubestore_router:
+    image: cubejs/cubestore:latest
+    environment:
+      - CUBESTORE_WORKERS=cubestore_worker_1:10001,cubestore_worker_2:10002
+      - CUBESTORE_REMOTE_DIR=/cube/data
+      - CUBESTORE_META_PORT=9999
+      - CUBESTORE_SERVER_NAME=cubestore_router:9999
+      - CUBEJS_REDIS_PASSWORD=MDNcVb924a
+    volumes:
+      - .cubestore:/cube/data
+  cubestore_worker_1:
+    image: cubejs/cubestore:latest
+    environment:
+      - CUBESTORE_WORKERS=cubestore_worker_1:10001,cubestore_worker_2:10002
+      - CUBESTORE_SERVER_NAME=cubestore_worker_1:10001
+      - CUBESTORE_WORKER_PORT=10001
+      - CUBESTORE_REMOTE_DIR=/cube/data
+      - CUBEJS_REDIS_URL=redis://redis:6379
+      - CUBESTORE_META_ADDR=cubestore_router:9999
+      - REDIS_HOST=redis
+      - REDIS_HOST_PASSWORD=MDNcVb924a
+    volumes:
+      - .cubestore:/cube/data
+    depends_on:
+      - cubestore_router
+      - redis
+ 
+  cubestore_worker_2:
+    image: cubejs/cubestore:latest
+    environment:
+      - CUBESTORE_WORKERS=cubestore_worker_1:10001,cubestore_worker_2:10002
+      - CUBESTORE_SERVER_NAME=cubestore_worker_2:10002
+      - CUBESTORE_WORKER_PORT=10002
+      - CUBESTORE_REMOTE_DIR=/cube/data
+      - CUBEJS_REDIS_URL=redis://redis:6379
+      - CUBESTORE_META_ADDR=cubestore_router:9999
+      - REDIS_HOST=redis
+      - REDIS_HOST_PASSWORD=MDNcVb924a
+    volumes:
+      - .cubestore:/cube/data
+    depends_on:
+      - cubestore_router
+      - redis
+ 
+  redis:
+    image: redis:6.2-alpine
+    command: redis-server --requirepass MDNcVb924a
+    ports:
+      - 6379:6379
+    environment:
+      - REDIS_PASSWORD=MDNcVb924a
+    logging:
+      driver: none
