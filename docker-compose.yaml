@@ -8,6 +8,8 @@ services:
      - 15432:15432
     environment:
       - CUBEJS_DEV_MODE=true
+    env_file:
+      - ./.cubeconf.env
     volumes:
       - .:/cube/conf
 

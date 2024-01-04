@@ -4,6 +4,8 @@
   "private": true,
   "createdAt": "2023-12-19T16:28:17.114Z",
   "dependencies": {
-    "@cubejs-client/core": "^0.34.37"
+    "@cubejs-client/core": "^0.34.37",
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3"
   }
 }
